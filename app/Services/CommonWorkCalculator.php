@@ -4,8 +4,12 @@ namespace App\Services;
 
 use DateTimeImmutable;
 
-class CommonWorkCalculator
+readonly class CommonWorkCalculator
 {
+
+    public function __construct(private OverlapDays $overlapDays)
+    {
+    }
 
     public function calculate(array $input): array
     {
@@ -31,7 +35,7 @@ class CommonWorkCalculator
                     continue;
                 }
 
-                $overlapDays = $this->overlapDays($employeePeriodBase, $emplPeriodSearch);
+                $overlapDays = $this->overlapDays->hasOverlap($employeePeriodBase, $emplPeriodSearch);
                 if ($overlapDays === 0) {
                     continue;
                 }
@@ -53,11 +57,4 @@ class CommonWorkCalculator
         return array_values($combined);
     }
 
-    private function overlapDays(array $a, array $b): int
-    {
-        $from = max($a['from'], $b['from']);
-        $to = min($a['to'], $b['to']);
-
-        return $from <= $to ? $from->diff($to)->days + 1 : 0;
-    }
 }
