@@ -4,6 +4,9 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -19,4 +22,27 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request) => $request->is('api/*') || $request->expectsJson(),
         );
+
+        $exceptions->render(function (InvalidArgumentException $e) {
+            return response()->json(['message' => $e->getMessage()], 400);
+        });
+
+        // Anything else gets a generic message; details are only logged, never returned.
+        $exceptions->render(function (Throwable $e) {
+            if ($e instanceof ValidationException) {
+                return null;
+            }
+
+            if ($e instanceof HttpExceptionInterface) {
+                $status = $e->getStatusCode();
+
+                return response()->json(
+                    ['message' => $e->getMessage() ?: Response::$statusTexts[$status] ?? 'Error'],
+                    $status,
+                    $e->getHeaders(),
+                );
+            }
+
+            return response()->json(['message' => 'Server Error'], 500);
+        });
     })->create();

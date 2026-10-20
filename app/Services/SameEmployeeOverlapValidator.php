@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use DateMalformedStringException;
 use DateTimeImmutable;
 use InvalidArgumentException;
 
@@ -22,8 +23,8 @@ class SameEmployeeOverlapValidator
             $employeePeriod = [
                 'employId' => $row[$csvHeaders['employeeId']],
                 'projectId' => $row[$csvHeaders['projectId']],
-                'from' => new DateTimeImmutable($row[$csvHeaders['dateFrom']]),
-                'to' => $row[$csvHeaders['dateTo']] === null ? $today : new DateTimeImmutable($row[$csvHeaders['dateTo']]),
+                'from' => $this->parseDate($row, $csvHeaders['dateFrom']),
+                'to' => $row[$csvHeaders['dateTo']] === null ? $today : $this->parseDate($row, $csvHeaders['dateTo']),
             ];
 
             if ($employeePeriod['from'] > $employeePeriod['to']) {
@@ -50,6 +51,30 @@ class SameEmployeeOverlapValidator
                 }
             }
         }
+    }
+
+    private function parseDate(array $row, string $column): DateTimeImmutable
+    {
+        $csvHeaders = config('projects.csvHeaders');
+        $value = (string) $row[$column];
+
+        try {
+            $date = $value === '' ? null : new DateTimeImmutable($value);
+        } catch (DateMalformedStringException) {
+            $date = null;
+        }
+
+        // Impossible dates such as 2013-02-30 parse with a warning instead of failing.
+        $errors = DateTimeImmutable::getLastErrors();
+
+        if ($date === null || ($errors !== false && $errors['warning_count'] > 0)) {
+            throw new InvalidArgumentException(
+                "Employee {$row[$csvHeaders['employeeId']]} has an invalid {$column} on project {$row[$csvHeaders['projectId']]}: \"{$value}\". "
+                . 'Use a valid date such as 2013-11-01.'
+            );
+        }
+
+        return $date;
     }
 
     private function formatPeriod(array $period): string
