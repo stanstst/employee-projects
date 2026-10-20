@@ -16,6 +16,7 @@ services:
         - action: sync
           path: .
           target: /var/www/html
+          initial_sync: true
           ignore:
             - vendor/
             - storage/
@@ -40,5 +41,6 @@ services:
         - action: sync
           path: public/
           target: /var/www/html/public
+          initial_sync: true
         - action: rebuild
           path: docker/nginx/default.conf

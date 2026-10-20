@@ -12,10 +12,12 @@ Development, with live reload (code edits are synced into the container; changes
 docker compose up --build --watch
 ```
 
-Or without watching:
+Live reload only runs while that command is running; on start it first syncs any edits made while it was off.
+
+Or without watching (serves the code from the last build):
 
 ```sh
-docker compose up --build -d
+docker compose up --build --watch -d
 ```
 
 - Home page (blank): http://localhost:8000
@@ -32,4 +34,9 @@ Define routes in `routes/api.php`; they are served under the `/api` prefix.
 
 ```sh
 docker run --rm -v "$PWD":/app -w /app composer:2 sh -c "composer install && composer test"
+```
+## Api calculate-common-projects endpoint Test
+
+```sh
+curl -F "file=@tests/data/sample.csv" localhost:8000/api/calculate-common-projects
 ```
