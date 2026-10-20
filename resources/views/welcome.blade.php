@@ -31,7 +31,6 @@
             const form = document.getElementById('upload-form');
             const status = document.getElementById('status');
             const table = document.getElementById('result');
-            const columns = ['EmpID', 'ProjectID', 'DateFrom', 'DateTo'];
 
             function showStatus(text, isError = false) {
                 status.textContent = text;
@@ -51,11 +50,11 @@
             }
 
             function renderTable(rows) {
-                const width = Math.max(columns.length, ...rows.map((r) => r.length));
-                const headers = Array.from({ length: width }, (_, i) => columns[i] ?? `Column ${i + 1}`);
+                const headers = rows.length ? Object.keys(rows[0]) : [];
+                const cells = (r) => Object.values(r).map((value) => value ?? 'NULL');
 
                 table.tHead.replaceChildren(row(headers, 'th'));
-                table.tBodies[0].replaceChildren(...rows.map((r) => row(r, 'td')));
+                table.tBodies[0].replaceChildren(...rows.map((r) => row(cells(r), 'td')));
                 table.hidden = rows.length === 0;
             }
 
@@ -68,11 +67,19 @@
                 showStatus('Uploading…');
 
                 try {
-                    const response = await fetch('/api/calculate-common-projects', {
-                        method: 'POST',
-                        headers: { Accept: 'application/json' },
-                        body: new FormData(form),
-                    });
+                    let response;
+
+                    try {
+                        response = await fetch('/api/calculate-common-projects', {
+                            method: 'POST',
+                            headers: { Accept: 'application/json' },
+                            body: new FormData(form),
+                        });
+                    } catch {
+                        showStatus('Could not reach the server.', true);
+                        return;
+                    }
+
                     const json = await response.json().catch(() => ({}));
 
                     if (!response.ok) {
@@ -80,10 +87,21 @@
                         return;
                     }
 
-                    renderTable(json.data);
-                    showStatus(`${json.data.length} ${json.data.length === 1 ? 'row' : 'rows'}`);
-                } catch {
-                    showStatus('Could not reach the server.', true);
+                    const rows = json.data;
+
+                    if (!Array.isArray(rows) || !rows.every((r) => r !== null && typeof r === 'object')) {
+                        console.error('Unexpected response', json);
+                        showStatus('Unexpected response from the server: no list of rows in "data".', true);
+                        return;
+                    }
+
+                    try {
+                        renderTable(rows);
+                        showStatus(`${rows.length} ${rows.length === 1 ? 'row' : 'rows'}`);
+                    } catch (error) {
+                        console.error(error, json);
+                        showStatus(`Unexpected response from the server: ${error.message}`, true);
+                    }
                 } finally {
                     button.disabled = false;
                 }
