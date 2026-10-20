@@ -1,0 +1,44 @@
+services:
+  app:
+    build:
+      context: .
+      target: app
+    image: simple-api-app
+    environment:
+      APP_ENV: ${APP_ENV:-local}
+      APP_DEBUG: ${APP_DEBUG:-true}
+      APP_URL: ${APP_URL:-http://localhost:8000}
+    restart: unless-stopped
+    # Live reload with `docker compose up --watch`: code edits are synced into
+    # the container, dependency changes rebuild the image.
+    develop:
+      watch:
+        - action: sync
+          path: .
+          target: /var/www/html
+          ignore:
+            - vendor/
+            - storage/
+            - bootstrap/cache/
+        - action: rebuild
+          path: composer.json
+        - action: rebuild
+          path: composer.lock
+
+  web:
+    build:
+      context: .
+      target: web
+    image: simple-api-web
+    ports:
+      - "${APP_PORT:-8000}:80"
+    depends_on:
+      - app
+    restart: unless-stopped
+    develop:
+      watch:
+        - action: sync
+          path: public/
+          target: /var/www/html/public
+        - action: rebuild
+          path: docker/nginx/default.conf
