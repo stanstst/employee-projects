@@ -22,7 +22,8 @@ class CalculateCommonProjectsController extends Controller
         $csv->setHeaderOffset(0);
 
         $header = array_map('trim', $csv->getHeader());
-        $columns = ['EmpID', 'ProjectID', 'DateFrom', 'DateTo'];
+        $headers = config('projects.csvHeaders');
+        $columns = array_values($headers);
 
         if (array_diff($columns, $header) !== []) {
             throw ValidationException::withMessages([
@@ -32,10 +33,10 @@ class CalculateCommonProjectsController extends Controller
 
         $rows = collect($csv->getRecords($header))
             ->map(fn(array $row) => [
-                'EmpID' => (int)$row['EmpID'],
-                'ProjectID' => (int)$row['ProjectID'],
-                'DateFrom' => trim($row['DateFrom']),
-                'DateTo' => in_array(strtoupper(trim((string)$row['DateTo'])), ['', 'NULL'], true) ? null : trim($row['DateTo']),
+                $headers['employeeId'] => (int)$row[$headers['employeeId']],
+                $headers['projectId'] => (int)$row[$headers['projectId']],
+                $headers['dateFrom'] => trim($row[$headers['dateFrom']]),
+                $headers['dateTo'] => in_array(strtoupper(trim((string)$row[$headers['dateTo']])), ['', 'NULL'], true) ? null : trim($row[$headers['dateTo']]),
             ])
             ->values()
             ->all();

@@ -97,7 +97,7 @@
 
                     try {
                         renderTable(rows);
-                        showStatus(`${rows.length} ${rows.length === 1 ? 'row' : 'rows'}`);
+                        showStatus('');
                     } catch (error) {
                         console.error(error, json);
                         showStatus(`Unexpected response from the server: ${error.message}`, true);
