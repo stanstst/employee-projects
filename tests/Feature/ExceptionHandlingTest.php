@@ -56,22 +56,20 @@ class ExceptionHandlingTest extends TestCase
 
         $this->post(self::URI, [
             'file' => UploadedFile::fake()->createWithContent('euro.csv', $euro),
-            'dateFormat' => 'euro',
         ])
             ->assertOk()
             ->assertExactJson($expected);
     }
 
-    public function test_dates_in_the_wrong_format_return_400_with_a_hint(): void
+    public function test_dates_in_an_unsupported_format_return_400_with_a_hint(): void
     {
-        $csv = "EmpID,ProjectID,DateFrom,DateTo\n143,12,2013-11-01,NULL\n";
+        $csv = "EmpID,ProjectID,DateFrom,DateTo\n143,12,11/01/2013,NULL\n";
 
         $this->post(self::URI, [
             'file' => UploadedFile::fake()->createWithContent('projects.csv', $csv),
-            'dateFormat' => 'euro',
         ])
             ->assertStatus(400)
-            ->assertExactJson(['message' => 'Employee 143 has an invalid DateFrom on project 12: "2013-11-01". Use a valid date such as 01.11.2013.', 'errors' => ['file' => ['Employee 143 has an invalid DateFrom on project 12: "2013-11-01". Use a valid date such as 01.11.2013.']]]);
+            ->assertExactJson(['message' => 'Employee 143 has an invalid DateFrom on project 12: "11/01/2013". Use a valid date such as 2013-11-01.', 'errors' => ['file' => ['Employee 143 has an invalid DateFrom on project 12: "11/01/2013". Use a valid date such as 2013-11-01.']]]);
     }
 
     public function test_request_validation_errors_return_400(): void

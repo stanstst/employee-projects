@@ -7,33 +7,23 @@ use InvalidArgumentException;
 
 class DateTimeFactory
 {
-    private string $dateFormat;
-
-    /**
-     * @param string $dateFormatKey a key of config('projects.dateFormats'); unknown keys use 'default'
-     */
-    public function __construct(string $dateFormatKey = 'default')
-    {
-        $dateFormats = config('projects.dateFormats');
-
-        $this->dateFormat = $dateFormats[$dateFormatKey] ?? $dateFormats['default'];
-    }
-
     public function create(string $dateString): DateTimeImmutable
     {
-        $date = DateTimeImmutable::createFromFormat('!' . $this->dateFormat, $dateString);
+        foreach (config('projects.dateFormats') as $format) {
+            $date = DateTimeImmutable::createFromFormat('!' . $format, $dateString);
 
-        $errors = DateTimeImmutable::getLastErrors();
+            $errors = DateTimeImmutable::getLastErrors();
 
-        if ($date === false || ($errors !== false && $errors['warning_count'] > 0)) {
-            throw new InvalidArgumentException("\"{$dateString}\" is not a valid date");
+            if ($date !== false && ($errors === false || $errors['warning_count'] === 0)) {
+                return $date;
+            }
         }
 
-        return $date;
+        throw new InvalidArgumentException("\"{$dateString}\" is not a valid date");
     }
 
     public function example(): string
     {
-        return (new DateTimeImmutable('2013-11-01'))->format($this->dateFormat);
+        return (new DateTimeImmutable('2013-11-01'))->format(config('projects.dateFormats')[0]);
     }
 }

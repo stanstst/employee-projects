@@ -17,14 +17,6 @@
     <body>
         <form id="upload-form">
             <input type="file" name="file" accept=".csv,text/csv" required>
-            <label>
-                Date format
-                <select name="dateFormat">
-                    @foreach (config('projects.dateFormats') as $key => $format)
-                        <option value="{{ $key }}">{{ $key }} ({{ $format }})</option>
-                    @endforeach
-                </select>
-            </label>
             <button type="submit">Upload</button>
         </form>
 
