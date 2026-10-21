@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Services\CommonWorkCalculator;
 use App\Services\OverlapDays;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Validation\ValidationException;
 use InvalidArgumentException;
 use RuntimeException;
 use Tests\TestCase;
@@ -14,13 +15,13 @@ class ExceptionHandlingTest extends TestCase
 {
     private const URI = '/api/calculate-common-projects';
 
-    public function test_invalid_argument_exception_returns_400_with_its_message(): void
+    public function test_validation_exception_returns_400_with_its_message(): void
     {
-        $this->calculatorThrows(new InvalidArgumentException('Bad data'));
+        $this->calculatorThrows(ValidationException::withMessages(['file' => 'Bad data']));
 
         $this->upload()
             ->assertStatus(400)
-            ->assertExactJson(['message' => 'Bad data']);
+            ->assertExactJson(['message' => 'Bad data', 'errors' => ['file' => ['Bad data']]]);
     }
 
     public function test_other_exceptions_return_a_generic_500_without_details(): void
@@ -41,7 +42,7 @@ class ExceptionHandlingTest extends TestCase
             'file' => UploadedFile::fake()->createWithContent('projects.csv', $csv),
         ])
             ->assertStatus(400)
-            ->assertExactJson(['message' => 'Employee 143 has an invalid DateFrom on project 12: "2013-02-30". Use a valid date such as 2013-11-01.']);
+            ->assertExactJson(['message' => 'Employee 143 has an invalid DateFrom on project 12: "2013-02-30". Use a valid date such as 2013-11-01.', 'errors' => ['file' => ['Employee 143 has an invalid DateFrom on project 12: "2013-02-30". Use a valid date such as 2013-11-01.']]]);
     }
 
     public function test_euro_date_format_gives_the_same_result_as_the_default_format(): void
@@ -70,14 +71,23 @@ class ExceptionHandlingTest extends TestCase
             'dateFormat' => 'euro',
         ])
             ->assertStatus(400)
-            ->assertExactJson(['message' => 'Employee 143 has an invalid DateFrom on project 12: "2013-11-01". Use a valid date such as 01.11.2013.']);
+            ->assertExactJson(['message' => 'Employee 143 has an invalid DateFrom on project 12: "2013-11-01". Use a valid date such as 01.11.2013.', 'errors' => ['file' => ['Employee 143 has an invalid DateFrom on project 12: "2013-11-01". Use a valid date such as 01.11.2013.']]]);
     }
 
-    public function test_validation_errors_keep_their_422_response(): void
+    public function test_request_validation_errors_return_400(): void
     {
         $this->postJson(self::URI)
-            ->assertUnprocessable()
+            ->assertStatus(400)
             ->assertJsonValidationErrors('file');
+    }
+
+    public function test_invalid_argument_exception_is_no_longer_special_and_returns_a_generic_500(): void
+    {
+        $this->calculatorThrows(new InvalidArgumentException('secret detail'));
+
+        $this->upload()
+            ->assertStatus(500)
+            ->assertExactJson(['message' => 'Server Error']);
     }
 
     public function test_unknown_routes_keep_their_404_response(): void

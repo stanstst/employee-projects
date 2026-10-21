@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Utils\DateTimeFactory;
 use DateTimeImmutable;
+use Illuminate\Validation\ValidationException;
 use InvalidArgumentException;
 
 class SameEmployeeOverlapValidator
@@ -28,10 +29,10 @@ class SameEmployeeOverlapValidator
             ];
 
             if ($employeePeriod['from'] > $employeePeriod['to']) {
-                throw new InvalidArgumentException(
-                    "Employee {$row[$csvHeaders['employeeId']]} has a period on project {$row[$csvHeaders['projectId']]} that ends before it starts: "
-                    . $this->formatPeriod($employeePeriod)
-                );
+                throw ValidationException::withMessages([
+                    'file' => "Employee {$row[$csvHeaders['employeeId']]} has a period on project {$row[$csvHeaders['projectId']]} that ends before it starts: "
+                        . $this->formatPeriod($employeePeriod),
+                ]);
             }
 
             $employeesPeriods[] = $employeePeriod;
@@ -44,10 +45,10 @@ class SameEmployeeOverlapValidator
                 }
 
                 if ($this->overlapDays->hasOverlap($employeePeriodBase, $emplPeriodSearch) > 0) {
-                    throw new InvalidArgumentException(
-                        "Employee {$employeePeriodBase['employId']} has overlapping periods on project {$employeePeriodBase['projectId']}: "
-                        . $this->formatPeriod($employeePeriodBase) . ' and ' . $this->formatPeriod($emplPeriodSearch)
-                    );
+                    throw ValidationException::withMessages([
+                        'file' => "Employee {$employeePeriodBase['employId']} has overlapping periods on project {$employeePeriodBase['projectId']}: "
+                            . $this->formatPeriod($employeePeriodBase) . ' and ' . $this->formatPeriod($emplPeriodSearch),
+                    ]);
                 }
             }
         }
@@ -61,10 +62,10 @@ class SameEmployeeOverlapValidator
         try {
             return $this->dateTimeFactory->create($value);
         } catch (InvalidArgumentException) {
-            throw new InvalidArgumentException(
-                "Employee {$row[$csvHeaders['employeeId']]} has an invalid {$column} on project {$row[$csvHeaders['projectId']]}: \"{$value}\". "
-                . "Use a valid date such as {$this->dateTimeFactory->example()}."
-            );
+            throw ValidationException::withMessages([
+                'file' => "Employee {$row[$csvHeaders['employeeId']]} has an invalid {$column} on project {$row[$csvHeaders['projectId']]}: \"{$value}\". "
+                    . "Use a valid date such as {$this->dateTimeFactory->example()}.",
+            ]);
         }
     }
 

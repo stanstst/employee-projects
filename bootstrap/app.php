@@ -23,20 +23,16 @@ return Application::configure(basePath: dirname(__DIR__))
             fn (Request $request) => $request->is('api/*') || $request->expectsJson(),
         );
 
-        $exceptions->render(function (InvalidArgumentException $e) {
-            Log::info('InvalidArgumentException:' . $e->getMessage());
-            Log::info('InvalidArgumentException Stack trace:' . $e->getTraceAsString());
-            return response()->json(['message' => $e->getMessage()], 400);
+        $exceptions->render(function (ValidationException $e) {
+            Log::info('ValidationException:' . $e->getMessage());
+            Log::info('ValidationException Stack trace:' . $e->getTraceAsString());
+            return response()->json(['message' => $e->getMessage(), 'errors' => $e->errors()], 400);
         });
 
         // Anything else gets a generic message; details are only logged, never returned.
         $exceptions->render(function (Throwable $e) {
             Log::info('Error:' . $e->getMessage());
             Log::info('Error Stack trace:' . $e->getTraceAsString());
-            if ($e instanceof ValidationException) {
-                return null;
-            }
-
             if ($e instanceof HttpExceptionInterface) {
                 $status = $e->getStatusCode();
 

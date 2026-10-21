@@ -12,9 +12,6 @@ readonly class CommonWorkCalculator
     {
     }
 
-    /**
-     * @throws \DateMalformedStringException
-     */
     public function calculate(array $input): array
     {
         $csvHeaders = config('projects.csvHeaders');
