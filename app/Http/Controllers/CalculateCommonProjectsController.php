@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\CommonWorkCalculator;
+use App\Services\LongestPeriodWorkCalculator;
 use App\Services\SameEmployeeOverlapValidator;
 use DateMalformedStringException;
 use Illuminate\Http\JsonResponse;
@@ -18,7 +18,7 @@ class CalculateCommonProjectsController extends Controller
      * @throws Exception
      * @throws DateMalformedStringException
      */
-    public function __invoke(Request $request, CommonWorkCalculator $calculator, SameEmployeeOverlapValidator $sameEmployeeOverlapValidator): JsonResponse
+    public function __invoke(Request $request, LongestPeriodWorkCalculator $calculator, SameEmployeeOverlapValidator $sameEmployeeOverlapValidator): JsonResponse
     {
         $request->validate([
             'file' => ['required', 'file', 'mimes:csv,txt', 'max:2048'],
