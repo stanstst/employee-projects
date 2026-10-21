@@ -8,6 +8,10 @@ services:
       APP_ENV: ${APP_ENV:-local}
       APP_DEBUG: ${APP_DEBUG:-true}
       APP_URL: ${APP_URL:-http://localhost:8000}
+      LOG_CHANNEL: ${LOG_CHANNEL:-single}
+    volumes:
+      # Laravel writes storage/logs/laravel.log; mounted so it shows up in the project folder.
+      - ./storage/logs:/var/www/html/storage/logs
     restart: unless-stopped
     # Live reload with `docker compose up --watch`: code edits are synced into
     # the container, dependency changes rebuild the image.
