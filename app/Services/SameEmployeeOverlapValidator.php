@@ -63,7 +63,7 @@ class SameEmployeeOverlapValidator
         } catch (InvalidArgumentException) {
             throw new InvalidArgumentException(
                 "Employee {$row[$csvHeaders['employeeId']]} has an invalid {$column} on project {$row[$csvHeaders['projectId']]}: \"{$value}\". "
-                . 'Use a valid date such as 2013-11-01.'
+                . "Use a valid date such as {$this->dateTimeFactory->example()}."
             );
         }
     }

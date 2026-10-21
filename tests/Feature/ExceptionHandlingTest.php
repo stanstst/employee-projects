@@ -41,7 +41,7 @@ class ExceptionHandlingTest extends TestCase
             'file' => UploadedFile::fake()->createWithContent('projects.csv', $csv),
         ])
             ->assertStatus(400)
-            ->assertExactJson(['message' => 'Employee 143 has an invalid DateFrom on project 12: "2013-02-30". Use a date like 2013-11-01.']);
+            ->assertExactJson(['message' => 'Employee 143 has an invalid DateFrom on project 12: "2013-02-30". Use a valid date such as 2013-11-01.']);
     }
 
     public function test_euro_date_format_gives_the_same_result_as_the_default_format(): void
@@ -70,7 +70,7 @@ class ExceptionHandlingTest extends TestCase
             'dateFormat' => 'euro',
         ])
             ->assertStatus(400)
-            ->assertExactJson(['message' => 'Employee 143 has an invalid DateFrom on project 12: "2013-11-01". Use a date like 01.11.2013.']);
+            ->assertExactJson(['message' => 'Employee 143 has an invalid DateFrom on project 12: "2013-11-01". Use a valid date such as 01.11.2013.']);
     }
 
     public function test_validation_errors_keep_their_422_response(): void

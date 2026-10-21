@@ -31,4 +31,9 @@ class DateTimeFactory
 
         return $date;
     }
+
+    public function example(): string
+    {
+        return (new DateTimeImmutable('2013-11-01'))->format($this->dateFormat);
+    }
 }
