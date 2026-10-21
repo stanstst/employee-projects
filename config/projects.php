@@ -17,5 +17,5 @@ return [
         'dateFrom' => 'DateFrom',
         'dateTo' => 'DateTo',
     ],
-
+    'dateFormats' => ['default' => 'Y-m-d', 'euro' => 'd.m.Y']
 ];

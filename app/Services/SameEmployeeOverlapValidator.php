@@ -2,13 +2,13 @@
 
 namespace App\Services;
 
-use DateMalformedStringException;
+use App\Utils\DateTimeFactory;
 use DateTimeImmutable;
 use InvalidArgumentException;
 
 class SameEmployeeOverlapValidator
 {
-    public function __construct(private OverlapDays $overlapDays)
+    public function __construct(private readonly OverlapDays $overlapDays, private readonly DateTimeFactory $dateTimeFactory)
     {
     }
 
@@ -59,22 +59,13 @@ class SameEmployeeOverlapValidator
         $value = (string) $row[$column];
 
         try {
-            $date = $value === '' ? null : new DateTimeImmutable($value);
-        } catch (DateMalformedStringException) {
-            $date = null;
-        }
-
-        // Impossible dates such as 2013-02-30 parse with a warning instead of failing.
-        $errors = DateTimeImmutable::getLastErrors();
-
-        if ($date === null || ($errors !== false && $errors['warning_count'] > 0)) {
+            return $this->dateTimeFactory->create($value);
+        } catch (InvalidArgumentException) {
             throw new InvalidArgumentException(
                 "Employee {$row[$csvHeaders['employeeId']]} has an invalid {$column} on project {$row[$csvHeaders['projectId']]}: \"{$value}\". "
                 . 'Use a valid date such as 2013-11-01.'
             );
         }
-
-        return $date;
     }
 
     private function formatPeriod(array $period): string

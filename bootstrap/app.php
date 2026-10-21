@@ -24,11 +24,15 @@ return Application::configure(basePath: dirname(__DIR__))
         );
 
         $exceptions->render(function (InvalidArgumentException $e) {
+            Log::info('InvalidArgumentException:' . $e->getMessage());
+            Log::info('InvalidArgumentException Stack trace:' . $e->getTraceAsString());
             return response()->json(['message' => $e->getMessage()], 400);
         });
 
         // Anything else gets a generic message; details are only logged, never returned.
         $exceptions->render(function (Throwable $e) {
+            Log::info('Error:' . $e->getMessage());
+            Log::info('Error Stack trace:' . $e->getTraceAsString());
             if ($e instanceof ValidationException) {
                 return null;
             }

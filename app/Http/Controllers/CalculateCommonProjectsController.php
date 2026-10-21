@@ -4,14 +4,20 @@ namespace App\Http\Controllers;
 
 use App\Services\CommonWorkCalculator;
 use App\Services\SameEmployeeOverlapValidator;
+use DateMalformedStringException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
+use League\Csv\Exception;
 use League\Csv\Reader;
 
 class CalculateCommonProjectsController extends Controller
 {
 
+    /**
+     * @throws Exception
+     * @throws DateMalformedStringException
+     */
     public function __invoke(Request $request, CommonWorkCalculator $calculator, SameEmployeeOverlapValidator $sameEmployeeOverlapValidator): JsonResponse
     {
         $request->validate([

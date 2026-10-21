@@ -41,7 +41,36 @@ class ExceptionHandlingTest extends TestCase
             'file' => UploadedFile::fake()->createWithContent('projects.csv', $csv),
         ])
             ->assertStatus(400)
-            ->assertExactJson(['message' => 'Employee 143 has an invalid DateFrom on project 12: "2013-02-30". Use a valid date such as 2013-11-01.']);
+            ->assertExactJson(['message' => 'Employee 143 has an invalid DateFrom on project 12: "2013-02-30". Use a date like 2013-11-01.']);
+    }
+
+    public function test_euro_date_format_gives_the_same_result_as_the_default_format(): void
+    {
+        $default = "EmpID,ProjectID,DateFrom,DateTo\n1,10,2013-11-01,2014-01-05\n2,10,2013-12-01,2014-03-10\n";
+        $euro = "EmpID,ProjectID,DateFrom,DateTo\n1,10,01.11.2013,05.01.2014\n2,10,01.12.2013,10.03.2014\n";
+
+        $expected = $this->post(self::URI, [
+            'file' => UploadedFile::fake()->createWithContent('default.csv', $default),
+        ])->assertOk()->json();
+
+        $this->post(self::URI, [
+            'file' => UploadedFile::fake()->createWithContent('euro.csv', $euro),
+            'dateFormat' => 'euro',
+        ])
+            ->assertOk()
+            ->assertExactJson($expected);
+    }
+
+    public function test_dates_in_the_wrong_format_return_400_with_a_hint(): void
+    {
+        $csv = "EmpID,ProjectID,DateFrom,DateTo\n143,12,2013-11-01,NULL\n";
+
+        $this->post(self::URI, [
+            'file' => UploadedFile::fake()->createWithContent('projects.csv', $csv),
+            'dateFormat' => 'euro',
+        ])
+            ->assertStatus(400)
+            ->assertExactJson(['message' => 'Employee 143 has an invalid DateFrom on project 12: "2013-11-01". Use a date like 01.11.2013.']);
     }
 
     public function test_validation_errors_keep_their_422_response(): void

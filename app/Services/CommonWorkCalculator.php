@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Utils\DateTimeFactory;
 use DateTimeImmutable;
 
 readonly class CommonWorkCalculator
@@ -11,9 +12,13 @@ readonly class CommonWorkCalculator
     {
     }
 
+    /**
+     * @throws \DateMalformedStringException
+     */
     public function calculate(array $input): array
     {
         $csvHeaders = config('projects.csvHeaders');
+        $dateFactory = app(DateTimeFactory::class);
 
         $combined = [];
 
@@ -24,8 +29,8 @@ readonly class CommonWorkCalculator
             $employeesPeriods[] = [
                 $csvHeaders['employeeId'] => $row[$csvHeaders['employeeId']],
                 $csvHeaders['projectId'] => $row[$csvHeaders['projectId']],
-                'from' => new DateTimeImmutable($row[$csvHeaders['dateFrom']]),
-                'to' => $row[$csvHeaders['dateTo']] === null ? $today : new DateTimeImmutable($row[$csvHeaders['dateTo']]),
+                'from' => $dateFactory->create($row[$csvHeaders['dateFrom']]),
+                'to' => $row[$csvHeaders['dateTo']] === null ? $today : $dateFactory->create($row[$csvHeaders['dateTo']]),
             ];
         }
 
