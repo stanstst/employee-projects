@@ -5,6 +5,8 @@ cd /var/www/html
 
 [ -f .env ] || cp .env.example .env
 
+[ -n "$APP_KEY" ] || unset APP_KEY
+
 # Generate a key only when none is provided via the environment or .env.
 if [ -z "$APP_KEY" ] && ! grep -q '^APP_KEY=base64:' .env; then
     php artisan key:generate --force
