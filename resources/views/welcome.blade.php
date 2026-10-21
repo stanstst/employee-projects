@@ -105,7 +105,7 @@
 
                     try {
                         renderTable(rows);
-                        showStatus('');
+                        showStatus(rows.length === 0 ? 'no employees common projects' : '');
                     } catch (error) {
                         console.error(error, json);
                         showStatus(`Unexpected response from the server: ${error.message}`, true);
